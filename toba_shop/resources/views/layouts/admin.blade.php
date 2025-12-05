@@ -56,7 +56,7 @@
                         </a>
                     </li>
 
-                    <!-- 4. MONITORING TRANSAKSI (Menggantikan Data User) -->
+                    <!-- 4. MONITORING TRANSAKSI -->
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('admin.transactions.*') ? 'active' : '' }}"
                            href="{{ route('admin.transactions.index') }}">
@@ -64,12 +64,22 @@
                         </a>
                     </li>
 
-                    <!-- 5. LOGOUT (Sementara redirect ke home) -->
+                    <!-- ============================================== -->
+                    <!-- 5. LOGOUT (MODIFIKASI DISINI) -->
+                    <!-- ============================================== -->
                     <li class="nav-item mt-4">
-                        <a class="nav-link text-danger" href="#">
+                        <!-- Link yang memicu form submit via Javascript -->
+                        <a class="nav-link text-danger" href="{{ route('logout') }}"
+                           onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
                             <i class="fas fa-sign-out-alt me-2"></i> Logout
                         </a>
+
+                        <!-- Form Tersembunyi (Hidden) untuk POST Request -->
+                        <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
+                            @csrf
+                        </form>
                     </li>
+
                 </ul>
             </div>
 
