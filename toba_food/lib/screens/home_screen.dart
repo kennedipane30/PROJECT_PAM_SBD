@@ -1,14 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-import '../providers/auth_provider.dart';
-import '../services/product_service.dart';
-import '../services/umkm_service.dart';
-import '../models/product.dart';
+
+// --- IMPORT PROVIDER & SERVICES ---
+import '../../providers/auth_provider.dart';
+import '../../services/product_service.dart';
+import '../../services/umkm_service.dart';
+import '../../models/product.dart';
+
+// --- IMPORT LAYAR LAIN ---
+// Folder: screens/pembeli/
+import 'pembeli/product_detail_screen.dart'; 
+
+// Folder: screens/umkm/
 import 'umkm/add_product_screen.dart';
-import 'login_screen.dart';
-import 'pembeli/product_detail_screen.dart';
+// Perhatikan huruf besar/kecil sesuai nama file di explorer Anda (EditProductScreen.dart)
+import 'umkm/EditProductScreen.dart'; 
 import 'umkm/umkm_register_screen.dart';
+
+// Folder: screens/ (satu level)
+import 'login_screen.dart';
 import 'notification_screen.dart';
 import 'profile_screen.dart';
 
@@ -29,16 +40,17 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   late AnimationController _pulseController;
   late AnimationController _shineController;
 
-  // Ganti IP sesuai konfigurasi
+  // Ganti IP sesuai konfigurasi backend Laravel Anda
+  // Emulator Android pakai 10.0.2.2, Device fisik pakai IP Laptop (misal 192.168.x.x)
   final String _imageBaseUrl = "http://10.0.2.2:8000/storage/";
 
-  // Green Nature Palette
-  final Color primaryGreen = Color(0xFF3D5A4A);
-  final Color secondaryGreen = Color(0xFF6B8E7C);
-  final Color lightGreen = Color(0xFFA8C5B5);
-  final Color accentGreen = Color(0xFF8FBC8F);
-  final Color cream = Color(0xFFF5F1E8);
-  final Color darkGreen = Color(0xFF2C3E37);
+  // --- PALET WARNA ---
+  final Color primaryGreen = const Color(0xFF3D5A4A);
+  final Color secondaryGreen = const Color(0xFF6B8E7C);
+  final Color lightGreen = const Color(0xFFA8C5B5);
+  final Color accentGreen = const Color(0xFF8FBC8F);
+  final Color cream = const Color(0xFFF5F1E8);
+  final Color darkGreen = const Color(0xFF2C3E37);
 
   @override
   void initState() {
@@ -48,12 +60,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     // Animations
     _pulseController = AnimationController(
       vsync: this,
-      duration: Duration(seconds: 4),
+      duration: const Duration(seconds: 4),
     )..repeat(reverse: true);
 
     _shineController = AnimationController(
       vsync: this,
-      duration: Duration(seconds: 3),
+      duration: const Duration(seconds: 3),
     )..repeat();
   }
 
@@ -78,14 +90,97 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     }
   }
 
-  // --- LOGIKA HANDLE UMKM ---
+  // --- LOGIKA DELETE PRODUK (UMKM) ---
+  Future<void> _confirmDelete(Product product) async {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        title: Text("Hapus Produk", style: TextStyle(color: darkGreen, fontWeight: FontWeight.bold)),
+        content: Text("Apakah Anda yakin ingin menghapus '${product.namaProduk}'?", style: TextStyle(color: secondaryGreen)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text("Batal", style: TextStyle(color: secondaryGreen)),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(ctx); // Tutup dialog konfirmasi
+              await _deleteProduct(product.id);
+            },
+            child: const Text("Hapus", style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _deleteProduct(int productId) async {
+    // Loading
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (c) => Center(child: CircularProgressIndicator(color: accentGreen)),
+    );
+
+    try {
+      // Baris ini tidak akan merah lagi jika LANGKAH 1 sudah dilakukan
+      bool success = await ProductService().deleteProduct(productId);
+      
+      if (!mounted) return;
+      Navigator.pop(context); // Tutup loading
+
+      if (success) {
+        _showCustomDialog(
+          title: "Berhasil",
+          message: "Produk berhasil dihapus.",
+          isError: false,
+        );
+        _fetchProducts(); // Refresh list
+      } else {
+        _showCustomDialog(
+          title: "Gagal",
+          message: "Gagal menghapus produk.",
+          isError: true,
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      Navigator.pop(context);
+      _showCustomDialog(
+        title: "Error",
+        message: "Terjadi kesalahan: $e",
+        isError: true,
+      );
+    }
+  }
+
+  // --- LOGIKA EDIT PRODUK (UMKM) ---
+  void _editProduct(Product product) async {
+    // Navigasi ke Edit Screen
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        // Pastikan nama class di file EditProductScreen.dart adalah EditProductScreen
+        builder: (_) => EditProductScreen(product: product),
+      ),
+    );
+
+    // Jika berhasil update (return true), refresh home
+    if (result == true) {
+      _fetchProducts();
+    }
+  }
+
+  // --- LOGIKA HANDLE JUAL (UMKM/Seller) ---
   Future<void> _handleJualProduk() async {
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (c) => Center(
         child: Container(
-          padding: EdgeInsets.all(20),
+          padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(15),
@@ -112,8 +207,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       } else if (status == 'not_registered') {
         _showCustomDialog(
             title: "Belum Terdaftar",
-            message:
-                "Anda belum terdaftar sebagai Mitra UMKM. Silakan lengkapi data usaha Anda.",
+            message: "Anda belum terdaftar sebagai Mitra UMKM. Silakan lengkapi data usaha Anda.",
             isError: false,
             onConfirm: () {
               Navigator.push(
@@ -165,7 +259,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               isError ? Icons.error_outline : Icons.info_outline,
               color: isError ? Colors.red : accentGreen,
             ),
-            SizedBox(width: 10),
+            const SizedBox(width: 10),
             Text(title,
                 style: TextStyle(
                     color: darkGreen,
@@ -196,19 +290,16 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   List<Product> get _filteredProducts {
     if (_searchQuery.isEmpty) return _products;
     return _products.where((product) {
-      return product.namaProduk
-              .toLowerCase()
-              .contains(_searchQuery.toLowerCase()) ||
+      return product.namaProduk.toLowerCase().contains(_searchQuery.toLowerCase()) ||
           product.umkmNama.toLowerCase().contains(_searchQuery.toLowerCase());
     }).toList();
   }
 
-  // --- MAIN BUILD ---
+  // --- BUILD UTAMA ---
   @override
   Widget build(BuildContext context) {
     final auth = Provider.of<AuthProvider>(context);
-    final formatCurrency =
-        NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
+    final formatCurrency = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
 
     return Scaffold(
       body: IndexedStack(
@@ -229,7 +320,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             BoxShadow(
               color: lightGreen.withOpacity(0.2),
               blurRadius: 10,
-              offset: Offset(0, -3),
+              offset: const Offset(0, -3),
             ),
           ],
         ),
@@ -240,26 +331,23 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           showUnselectedLabels: true,
           type: BottomNavigationBarType.fixed,
           currentIndex: _selectedIndex,
-          selectedLabelStyle: TextStyle(fontWeight: FontWeight.bold),
+          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold),
           onTap: (index) {
             setState(() {
               _selectedIndex = index;
             });
           },
           items: const [
-            BottomNavigationBarItem(
-                icon: Icon(Icons.home_rounded), label: 'Home'),
-            BottomNavigationBarItem(
-                icon: Icon(Icons.person_rounded), label: 'Profil'),
-            BottomNavigationBarItem(
-                icon: Icon(Icons.notifications_rounded), label: 'Notifikasi'),
+            BottomNavigationBarItem(icon: Icon(Icons.home_rounded), label: 'Home'),
+            BottomNavigationBarItem(icon: Icon(Icons.person_rounded), label: 'Profil'),
+            BottomNavigationBarItem(icon: Icon(Icons.notifications_rounded), label: 'Notifikasi'),
           ],
         ),
       ),
     );
   }
 
-  // --- ISI HALAMAN HOME ---
+  // --- KONTEN HOME ---
   Widget _buildHomeContent(AuthProvider auth, NumberFormat formatCurrency) {
     return Container(
       decoration: BoxDecoration(
@@ -290,8 +378,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       shape: BoxShape.circle,
                       gradient: RadialGradient(
                         colors: [
-                          accentGreen
-                              .withOpacity(0.15 * _pulseController.value),
+                          accentGreen.withOpacity(0.15 * _pulseController.value),
                           Colors.transparent,
                         ],
                       ),
@@ -311,12 +398,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       BoxShadow(
                         color: lightGreen.withOpacity(0.1),
                         blurRadius: 10,
-                        offset: Offset(0, 3),
+                        offset: const Offset(0, 3),
                       ),
                     ],
                   ),
                   child: Padding(
-                    padding: EdgeInsets.all(20),
+                    padding: const EdgeInsets.all(20),
                     child: Column(
                       children: [
                         // Row Logo
@@ -328,8 +415,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Container(
-                                    padding: EdgeInsets.symmetric(
-                                        horizontal: 18, vertical: 10),
+                                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
                                     decoration: BoxDecoration(
                                       gradient: LinearGradient(
                                         colors: [accentGreen, secondaryGreen],
@@ -339,15 +425,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                         BoxShadow(
                                           color: accentGreen.withOpacity(0.4),
                                           blurRadius: 15,
-                                          offset: Offset(0, 4),
+                                          offset: const Offset(0, 4),
                                         ),
                                       ],
                                     ),
-                                    child: Row(
+                                    child: const Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        Text("🍃",
-                                            style: TextStyle(fontSize: 20)),
+                                        Text("🍃", style: TextStyle(fontSize: 20)),
                                         SizedBox(width: 8),
                                         Text(
                                           "TOBA FOOD",
@@ -361,7 +446,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                       ],
                                     ),
                                   ),
-                                  SizedBox(height: 10),
+                                  const SizedBox(height: 10),
                                   Text(
                                     "Halo, ${auth.user?.name ?? 'Sahabat Toba'}! 👋",
                                     style: TextStyle(
@@ -375,7 +460,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                             ),
                           ],
                         ),
-                        SizedBox(height: 20),
+                        const SizedBox(height: 20),
                         // Search Field
                         Container(
                           decoration: BoxDecoration(
@@ -384,18 +469,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                             border: Border.all(color: lightGreen),
                           ),
                           child: TextField(
-                            onChanged: (value) =>
-                                setState(() => _searchQuery = value),
+                            onChanged: (value) => setState(() => _searchQuery = value),
                             style: TextStyle(color: darkGreen),
                             decoration: InputDecoration(
                               hintText: "Cari makanan lezat...",
-                              hintStyle: TextStyle(
-                                  color: secondaryGreen.withOpacity(0.5)),
-                              prefixIcon:
-                                  Icon(Icons.search, color: accentGreen),
+                              hintStyle: TextStyle(color: secondaryGreen.withOpacity(0.5)),
+                              prefixIcon: Icon(Icons.search, color: accentGreen),
                               border: InputBorder.none,
-                              contentPadding: EdgeInsets.symmetric(
-                                  horizontal: 20, vertical: 16),
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                             ),
                           ),
                         ),
@@ -415,7 +496,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 CircularProgressIndicator(color: accentGreen),
-                                SizedBox(height: 16),
+                                const SizedBox(height: 16),
                                 Text(
                                   "Memuat produk...",
                                   style: TextStyle(color: secondaryGreen),
@@ -429,7 +510,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     Container(
-                                      padding: EdgeInsets.all(30),
+                                      padding: const EdgeInsets.all(30),
                                       decoration: BoxDecoration(
                                         gradient: LinearGradient(
                                           colors: [
@@ -445,7 +526,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                         color: secondaryGreen,
                                       ),
                                     ),
-                                    SizedBox(height: 16),
+                                    const SizedBox(height: 16),
                                     Text(
                                       "Produk tidak ditemukan",
                                       style: TextStyle(
@@ -458,10 +539,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                 ),
                               )
                             : GridView.builder(
-                                padding: EdgeInsets.fromLTRB(20, 20, 20, 100),
+                                padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
                                 itemCount: _filteredProducts.length,
-                                gridDelegate:
-                                    SliverGridDelegateWithFixedCrossAxisCount(
+                                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                                   crossAxisCount: 2,
                                   childAspectRatio: 0.7,
                                   crossAxisSpacing: 18,
@@ -474,8 +554,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                     product.gambar != null
                                         ? "$_imageBaseUrl${product.gambar}"
                                         : null,
-                                    double.tryParse(product.harga.toString()) ??
-                                        0,
+                                    double.tryParse(product.harga.toString()) ?? 0,
                                     formatCurrency,
                                     auth,
                                   );
@@ -494,7 +573,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 child: InkWell(
                   onTap: _handleJualProduk,
                   child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [accentGreen, secondaryGreen, primaryGreen],
@@ -504,11 +583,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         BoxShadow(
                           color: accentGreen.withOpacity(0.5),
                           blurRadius: 20,
-                          offset: Offset(0, 6),
+                          offset: const Offset(0, 6),
                         ),
                       ],
                     ),
-                    child: Row(
+                    child: const Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(Icons.add, color: Colors.white),
@@ -531,8 +610,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
+  // --- WIDGET CARD PRODUK ---
   Widget _buildProductCard(Product product, String? imageUrl, double harga,
       NumberFormat formatCurrency, AuthProvider auth) {
+    
+    // Cek apakah user adalah seller
+    bool isSeller = auth.user?.role == 'seller';
+
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -549,44 +633,110 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           border: Border.all(color: lightGreen),
           boxShadow: [
             BoxShadow(
-              color: lightGreen.withOpacity(0.2),
+              color: lightGreen.withOpacity(0.2), 
               blurRadius: 10,
-              offset: Offset(0, 4),
+              offset: const Offset(0, 4),
             ),
           ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Bagian Gambar & Menu UMKM
             Expanded(
               flex: 3,
-              child: ClipRRect(
-                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-                child: Container(
-                  width: double.infinity,
-                  color: cream,
-                  child: imageUrl != null
-                      ? Image.network(
-                          imageUrl,
-                          fit: BoxFit.cover,
-                          errorBuilder: (c, e, s) => Icon(
-                            Icons.broken_image,
-                            color: secondaryGreen.withOpacity(0.3),
-                            size: 40,
-                          ),
-                        )
-                      : Icon(
-                          Icons.fastfood,
-                          color: secondaryGreen.withOpacity(0.3),
-                          size: 40,
+              child: Stack(
+                children: [
+                  // Gambar
+                  ClipRRect(
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                    child: Container(
+                      width: double.infinity,
+                      height: double.infinity,
+                      color: cream,
+                      child: imageUrl != null
+                          ? Image.network(
+                              imageUrl,
+                              fit: BoxFit.cover,
+                              errorBuilder: (c, e, s) => Icon(
+                                Icons.broken_image,
+                                color: secondaryGreen.withOpacity(0.3),
+                                size: 40,
+                              ),
+                            )
+                          : Icon(
+                              Icons.fastfood,
+                              color: secondaryGreen.withOpacity(0.3),
+                              size: 40,
+                            ),
+                    ),
+                  ),
+
+                  // MENU EDIT/DELETE (Seller Only)
+                  if (isSeller)
+                    Positioned(
+                      top: 5,
+                      right: 5,
+                      child: Container(
+                        height: 35,
+                        width: 35,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.9),
+                          shape: BoxShape.circle,
+                          boxShadow: const [
+                            BoxShadow(
+                              color: Colors.black12,
+                              blurRadius: 4,
+                            )
+                          ],
                         ),
-                ),
+                        child: PopupMenuButton<String>(
+                          padding: EdgeInsets.zero,
+                          icon: Icon(Icons.more_vert, color: darkGreen, size: 20),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(15)),
+                          onSelected: (value) {
+                            if (value == 'edit') {
+                              _editProduct(product);
+                            } else if (value == 'delete') {
+                              _confirmDelete(product);
+                            }
+                          },
+                          itemBuilder: (BuildContext context) =>
+                              <PopupMenuEntry<String>>[
+                            const PopupMenuItem<String>(
+                              value: 'edit',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.edit, color: Colors.blue, size: 20),
+                                  SizedBox(width: 10),
+                                  Text('Edit'),
+                                ],
+                              ),
+                            ),
+                            const PopupMenuItem<String>(
+                              value: 'delete',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.delete, color: Colors.red, size: 20),
+                                  SizedBox(width: 10),
+                                  Text('Hapus'),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ),
+
+            // Detail Text
             Expanded(
               flex: 2,
               child: Padding(
-                padding: EdgeInsets.all(12),
+                padding: const EdgeInsets.all(12),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -600,7 +750,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         fontSize: 15,
                       ),
                     ),
-                    SizedBox(height: 4),
+                    const SizedBox(height: 4),
                     Text(
                       product.umkmNama,
                       maxLines: 1,
@@ -610,7 +760,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         fontSize: 12,
                       ),
                     ),
-                    Spacer(),
+                    const Spacer(),
                     Text(
                       formatCurrency.format(harga),
                       style: TextStyle(

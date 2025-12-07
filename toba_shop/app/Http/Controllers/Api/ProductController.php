@@ -8,6 +8,7 @@ use App\Models\UmkmProfile; // Jangan lupa import Model ini
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Storage; // TAMBAHAN: Untuk hapus gambar lama
 
 class ProductController extends Controller
 {
@@ -83,5 +84,83 @@ class ProductController extends Controller
             // Ini akan menangkap error database dan menampilkannya
             return response()->json(['message' => 'Gagal menyimpan ke database', 'error' => $e->getMessage()], 500);
         }
+    }
+
+    // =========================================================================
+    // [BARU] UPDATE PRODUK (Edit)
+    // =========================================================================
+    public function update(Request $request, $id)
+    {
+        $user = Auth::user();
+
+        // 1. Cek Apakah Produk Ini Milik User yang Login
+        // Caranya: Cari produk ID X, yang UMKM-nya dimiliki oleh User ID Y
+        $product = Product::where('id', $id)
+            ->whereHas('umkm', function($query) use ($user) {
+                $query->where('user_id', $user->id);
+            })->first();
+
+        if (!$product) {
+            return response()->json(['message' => 'Produk tidak ditemukan atau Anda bukan pemiliknya'], 403);
+        }
+
+        // 2. Validasi (Gambar nullable karena user mungkin tidak ganti gambar)
+        $validator = Validator::make($request->all(), [
+            'nama_produk' => 'required|string',
+            'harga'       => 'required|numeric',
+            'stok'        => 'required|integer',
+            'deskripsi'   => 'required|string',
+            'gambar'      => 'nullable|image|max:2048'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        // 3. Handle Gambar Baru
+        if ($request->hasFile('gambar')) {
+            // Hapus gambar lama dari storage jika ada
+            if ($product->gambar) {
+                Storage::disk('public')->delete($product->gambar);
+            }
+            // Simpan gambar baru
+            $product->gambar = $request->file('gambar')->store('products', 'public');
+        }
+
+        // 4. Update Database
+        $product->update([
+            'nama_produk' => $request->nama_produk,
+            'harga'       => $request->harga,
+            'stok'        => $request->stok,
+            'deskripsi'   => $request->deskripsi,
+            // Kolom 'gambar' otomatis terupdate karena kita set $product->gambar di atas
+            // Kolom 'kategori' opsional jika ingin diupdate juga
+        ]);
+
+        return response()->json(['message' => 'Produk berhasil diperbarui', 'data' => $product]);
+    }
+
+    // =========================================================================
+    // [BARU] DELETE PRODUK (Hapus)
+    // =========================================================================
+    public function destroy($id)
+    {
+        $user = Auth::user();
+
+        // 1. Cek Kepemilikan (Sama seperti update)
+        $product = Product::where('id', $id)
+            ->whereHas('umkm', function($query) use ($user) {
+                $query->where('user_id', $user->id);
+            })->first();
+
+        if (!$product) {
+            return response()->json(['message' => 'Produk tidak ditemukan atau Anda bukan pemiliknya'], 403);
+        }
+
+        // 2. Hapus Produk
+        // Karena Anda sudah pakai SoftDeletes di Model, ini tidak akan error FK.
+        $product->delete();
+
+        return response()->json(['message' => 'Produk berhasil dihapus']);
     }
 }

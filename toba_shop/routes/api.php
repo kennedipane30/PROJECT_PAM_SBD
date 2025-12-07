@@ -37,6 +37,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // --- Produk (Khusus Seller) ---
     Route::post('/products', [ProductController::class, 'store']);
 
+    // [BARU] Route untuk Update dan Delete Produk
+    // Note: Gunakan POST untuk update di Flutter jika membawa file gambar
+    Route::post('/products/{id}', [ProductController::class, 'update']);
+    Route::delete('/products/{id}', [ProductController::class, 'destroy']);
+
     // =============================================================
     // --- TRANSAKSI (ORDER FLOW) ---
     // =============================================================
