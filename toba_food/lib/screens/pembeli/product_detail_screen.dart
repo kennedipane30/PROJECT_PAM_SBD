@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart'; // [BARU] Import Provider
 import '../../models/product.dart';
+import '../../providers/cart_provider.dart'; // [BARU] Import CartProvider
 import 'checkout_screen.dart';
+import 'cart_screen.dart'; // Optional: Jika ingin navigasi ke cart screen
 
 class ProductDetailScreen extends StatelessWidget {
   final Product product;
@@ -10,6 +13,9 @@ class ProductDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // [BARU] Panggil CartProvider (listen: false karena hanya untuk aksi klik)
+    final cart = Provider.of<CartProvider>(context, listen: false);
+
     final formatCurrency = NumberFormat.currency(
       locale: 'id_ID',
       symbol: 'Rp ',
@@ -17,19 +23,20 @@ class ProductDetailScreen extends StatelessWidget {
     );
 
     // Setup URL Gambar
+    // Ganti IP sesuai konfigurasi backend Anda
     final String imageBaseUrl = "http://10.0.2.2:8000/storage/";
     String? imageUrl;
     if (product.gambar != null && product.gambar!.isNotEmpty) {
       imageUrl = "$imageBaseUrl${product.gambar}";
     }
 
-    // Green Nature Palette - Modern & Elegant
-    final Color primaryGreen = Color(0xFF3D5A4A);
-    final Color secondaryGreen = Color(0xFF6B8E7C);
-    final Color lightGreen = Color(0xFFA8C5B5);
-    final Color accentGreen = Color(0xFF8FBC8F);
-    final Color cream = Color(0xFFF5F1E8);
-    final Color darkGreen = Color(0xFF2C3E37);
+    // Green Nature Palette
+    final Color primaryGreen = const Color(0xFF3D5A4A);
+    final Color secondaryGreen = const Color(0xFF6B8E7C);
+    final Color lightGreen = const Color(0xFFA8C5B5);
+    final Color accentGreen = const Color(0xFF8FBC8F);
+    final Color cream = const Color(0xFFF5F1E8);
+    final Color darkGreen = const Color(0xFF2C3E37);
 
     return Scaffold(
       backgroundColor: cream,
@@ -38,7 +45,7 @@ class ProductDetailScreen extends StatelessWidget {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: Container(
-          margin: EdgeInsets.all(8),
+          margin: const EdgeInsets.all(8),
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [accentGreen, secondaryGreen],
@@ -48,18 +55,18 @@ class ProductDetailScreen extends StatelessWidget {
               BoxShadow(
                 color: accentGreen.withOpacity(0.4),
                 blurRadius: 10,
-                offset: Offset(0, 3),
+                offset: const Offset(0, 3),
               ),
             ],
           ),
           child: IconButton(
-            icon: Icon(Icons.arrow_back, color: Colors.white),
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
             onPressed: () => Navigator.pop(context),
           ),
         ),
         actions: [
           Container(
-            margin: EdgeInsets.all(8),
+            margin: const EdgeInsets.all(8),
             decoration: BoxDecoration(
               color: Colors.white.withOpacity(0.3),
               shape: BoxShape.circle,
@@ -67,16 +74,13 @@ class ProductDetailScreen extends StatelessWidget {
                   Border.all(color: Colors.white.withOpacity(0.5), width: 1.5),
             ),
             child: IconButton(
-              icon: Icon(Icons.share_outlined, color: Colors.white),
+              icon: const Icon(Icons.share_outlined, color: Colors.white),
               onPressed: () {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text("Fitur berbagi segera hadir!"),
+                    content: const Text("Fitur berbagi segera hadir!"),
                     backgroundColor: accentGreen,
                     behavior: SnackBarBehavior.floating,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
                   ),
                 );
               },
@@ -88,7 +92,7 @@ class ProductDetailScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 1. GAMBAR BESAR dengan Gradient Overlay
+            // 1. GAMBAR BESAR
             Stack(
               children: [
                 Container(
@@ -111,36 +115,10 @@ class ProductDetailScreen extends StatelessWidget {
                           errorBuilder: (ctx, error, stackTrace) => Container(
                             color: cream,
                             child: Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Container(
-                                    padding: EdgeInsets.all(20),
-                                    decoration: BoxDecoration(
-                                      gradient: LinearGradient(
-                                        colors: [
-                                          lightGreen.withOpacity(0.3),
-                                          secondaryGreen.withOpacity(0.2)
-                                        ],
-                                      ),
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: Icon(
-                                      Icons.broken_image_outlined,
-                                      size: 60,
-                                      color: secondaryGreen,
-                                    ),
-                                  ),
-                                  SizedBox(height: 12),
-                                  Text(
-                                    "Gagal memuat gambar",
-                                    style: TextStyle(
-                                      color: secondaryGreen,
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ],
+                              child: Icon(
+                                Icons.broken_image_outlined,
+                                size: 60,
+                                color: secondaryGreen,
                               ),
                             ),
                           ),
@@ -148,41 +126,23 @@ class ProductDetailScreen extends StatelessWidget {
                       : Container(
                           color: cream,
                           child: Center(
-                            child: Container(
-                              padding: EdgeInsets.all(30),
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  colors: [
-                                    lightGreen.withOpacity(0.3),
-                                    secondaryGreen.withOpacity(0.2)
-                                  ],
-                                ),
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(
-                                Icons.restaurant,
-                                size: 100,
-                                color: secondaryGreen,
-                              ),
+                            child: Icon(
+                              Icons.restaurant,
+                              size: 100,
+                              color: secondaryGreen,
                             ),
                           ),
                         ),
                 ),
-                // Gradient Overlay Bottom
                 Positioned(
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
+                  bottom: 0, left: 0, right: 0,
                   child: Container(
                     height: 100,
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.transparent,
-                          cream,
-                        ],
+                        colors: [Colors.transparent, cream],
                       ),
                     ),
                   ),
@@ -190,10 +150,10 @@ class ProductDetailScreen extends StatelessWidget {
               ],
             ),
 
-            // 2. CONTENT DETAIL dengan Card Style
+            // 2. CONTENT DETAIL
             Container(
-              padding: EdgeInsets.all(2),
-              margin: EdgeInsets.symmetric(horizontal: 20),
+              padding: const EdgeInsets.all(2),
+              margin: const EdgeInsets.symmetric(horizontal: 20),
               transform: Matrix4.translationValues(0.0, -30.0, 0.0),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
@@ -206,12 +166,12 @@ class ProductDetailScreen extends StatelessWidget {
                   BoxShadow(
                     color: accentGreen.withOpacity(0.3),
                     blurRadius: 20,
-                    offset: Offset(0, 10),
+                    offset: const Offset(0, 10),
                   ),
                 ],
               ),
               child: Container(
-                padding: EdgeInsets.all(24),
+                padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(22),
@@ -219,15 +179,12 @@ class ProductDetailScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Nature Decoration
-                    _buildNatureDecoration(
-                        accentGreen, secondaryGreen, primaryGreen),
-                    SizedBox(height: 20),
+                    _buildNatureDecoration(accentGreen, secondaryGreen, primaryGreen),
+                    const SizedBox(height: 20),
 
-                    // Nama Toko dengan Icon
+                    // Nama Toko
                     Container(
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       decoration: BoxDecoration(
                         color: cream,
                         borderRadius: BorderRadius.circular(12),
@@ -237,33 +194,26 @@ class ProductDetailScreen extends StatelessWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Container(
-                            padding: EdgeInsets.all(6),
+                            padding: const EdgeInsets.all(6),
                             decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [accentGreen, secondaryGreen],
-                              ),
+                              gradient: LinearGradient(colors: [accentGreen, secondaryGreen]),
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            child: Icon(
-                              Icons.storefront,
-                              color: Colors.white,
-                              size: 16,
-                            ),
+                            child: const Icon(Icons.storefront, color: Colors.white, size: 16),
                           ),
-                          SizedBox(width: 8),
+                          const SizedBox(width: 8),
                           Text(
                             product.umkmNama,
                             style: TextStyle(
                               color: darkGreen,
                               fontSize: 13,
                               fontWeight: FontWeight.w700,
-                              letterSpacing: 0.3,
                             ),
                           ),
                         ],
                       ),
                     ),
-                    SizedBox(height: 16),
+                    const SizedBox(height: 16),
 
                     // Nama Produk
                     Text(
@@ -273,15 +223,13 @@ class ProductDetailScreen extends StatelessWidget {
                         fontWeight: FontWeight.w900,
                         color: darkGreen,
                         height: 1.3,
-                        letterSpacing: 0.5,
                       ),
                     ),
-                    SizedBox(height: 12),
+                    const SizedBox(height: 12),
 
-                    // Harga dengan Background Gradient
+                    // Harga
                     Container(
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           colors: [accentGreen, secondaryGreen, primaryGreen],
@@ -291,72 +239,57 @@ class ProductDetailScreen extends StatelessWidget {
                           BoxShadow(
                             color: accentGreen.withOpacity(0.3),
                             blurRadius: 10,
-                            offset: Offset(0, 4),
+                            offset: const Offset(0, 4),
                           ),
                         ],
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(
-                            Icons.local_offer,
-                            color: Colors.white,
-                            size: 18,
-                          ),
-                          SizedBox(width: 8),
+                          const Icon(Icons.local_offer, color: Colors.white, size: 18),
+                          const SizedBox(width: 8),
                           Text(
-                            formatCurrency.format(
-                              double.tryParse(product.harga.toString()) ?? 0,
-                            ),
-                            style: TextStyle(
+                            formatCurrency.format(double.tryParse(product.harga.toString()) ?? 0),
+                            style: const TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
-                              letterSpacing: 0.5,
                             ),
                           ),
                         ],
                       ),
                     ),
-                    SizedBox(height: 24),
+                    const SizedBox(height: 24),
 
-                    // Divider dengan Nature Decoration
-                    _buildNatureDecoration(
-                        accentGreen, secondaryGreen, primaryGreen),
-                    SizedBox(height: 20),
+                    _buildNatureDecoration(accentGreen, secondaryGreen, primaryGreen),
+                    const SizedBox(height: 20),
 
-                    // Label Deskripsi
+                    // Deskripsi
                     Row(
                       children: [
                         Container(
-                          width: 4,
-                          height: 24,
+                          width: 4, height: 24,
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
-                              colors: [accentGreen, primaryGreen],
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                            ),
+                                colors: [accentGreen, primaryGreen],
+                                begin: Alignment.topCenter, end: Alignment.bottomCenter),
                             borderRadius: BorderRadius.circular(2),
                           ),
                         ),
-                        SizedBox(width: 8),
+                        const SizedBox(width: 8),
                         Text(
                           "Deskripsi Produk",
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                             color: darkGreen,
-                            letterSpacing: 0.3,
                           ),
                         ),
                       ],
                     ),
-                    SizedBox(height: 12),
-
-                    // Deskripsi
+                    const SizedBox(height: 12),
                     Container(
-                      padding: EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         color: cream,
                         borderRadius: BorderRadius.circular(12),
@@ -373,41 +306,35 @@ class ProductDetailScreen extends StatelessWidget {
                         textAlign: TextAlign.justify,
                       ),
                     ),
-                    SizedBox(height: 20),
-
-                    // Nature Decoration Bottom
-                    _buildNatureDecoration(
-                        accentGreen, secondaryGreen, primaryGreen),
+                    const SizedBox(height: 20),
+                    _buildNatureDecoration(accentGreen, secondaryGreen, primaryGreen),
                   ],
                 ),
               ),
             ),
-
-            SizedBox(height: 100), // Space untuk bottom bar
+            const SizedBox(height: 100),
           ],
         ),
       ),
 
-      // 3. BOTTOM BAR dengan Green Gradient
+      // 3. BOTTOM BAR
       bottomNavigationBar: Container(
-        padding: EdgeInsets.all(20),
+        padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: Colors.white,
           boxShadow: [
             BoxShadow(
               color: accentGreen.withOpacity(0.15),
               blurRadius: 20,
-              offset: Offset(0, -5),
+              offset: const Offset(0, -5),
             ),
           ],
-          border: Border(
-            top: BorderSide(color: lightGreen.withOpacity(0.3), width: 1),
-          ),
+          border: Border(top: BorderSide(color: lightGreen.withOpacity(0.3), width: 1)),
         ),
         child: SafeArea(
           child: Row(
             children: [
-              // Tombol Keranjang
+              // --- TOMBOL TAMBAH KE KERANJANG (DIUPDATE) ---
               Container(
                 width: 56,
                 height: 56,
@@ -419,54 +346,47 @@ class ProductDetailScreen extends StatelessWidget {
                     BoxShadow(
                       color: accentGreen.withOpacity(0.2),
                       blurRadius: 8,
-                      offset: Offset(0, 3),
+                      offset: const Offset(0, 3),
                     ),
                   ],
                 ),
                 child: IconButton(
-                  icon: Icon(
-                    Icons.shopping_cart_outlined,
-                    color: primaryGreen,
-                    size: 26,
-                  ),
+                  icon: Icon(Icons.shopping_cart_outlined, color: primaryGreen, size: 26),
                   onPressed: () {
+                    // [MODIFIKASI 1]: Tambahkan logika add to cart yang sebenarnya
+                    cart.addItem(product);
+                    
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Row(
-                          children: [
+                        content: Row(children: const [
                             Icon(Icons.check_circle, color: Colors.white),
                             SizedBox(width: 10),
                             Text("Ditambahkan ke keranjang!"),
-                          ],
-                        ),
+                        ]),
                         backgroundColor: accentGreen,
                         behavior: SnackBarBehavior.floating,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
+                        duration: const Duration(seconds: 1),
                       ),
                     );
                   },
                 ),
               ),
-              SizedBox(width: 12),
+              const SizedBox(width: 12),
 
-              // Tombol Beli Sekarang
+              // --- TOMBOL BELI SEKARANG (DIUPDATE) ---
               Expanded(
                 child: Container(
                   height: 56,
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [accentGreen, secondaryGreen, primaryGreen],
-                      begin: Alignment.centerLeft,
-                      end: Alignment.centerRight,
                     ),
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [
                       BoxShadow(
                         color: accentGreen.withOpacity(0.4),
                         blurRadius: 15,
-                        offset: Offset(0, 6),
+                        offset: const Offset(0, 6),
                       ),
                     ],
                   ),
@@ -474,27 +394,24 @@ class ProductDetailScreen extends StatelessWidget {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.transparent,
                       shadowColor: Colors.transparent,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                     ),
                     onPressed: () {
+                      // [MODIFIKASI 2]: Masukkan ke cart dulu, baru ke checkout
+                      cart.addItem(product);
+
+                      // Navigasi ke CheckoutScreen TANPA PARAMETER
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) =>
-                              CheckoutScreen(product: product),
+                          builder: (context) => const CheckoutScreen(), // Error hilang di sini
                         ),
                       );
                     },
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.shopping_bag,
-                          color: Colors.white,
-                          size: 22,
-                        ),
+                      children: const [
+                        Icon(Icons.shopping_bag, color: Colors.white, size: 22),
                         SizedBox(width: 10),
                         Text(
                           "Beli Sekarang",
@@ -502,7 +419,6 @@ class ProductDetailScreen extends StatelessWidget {
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
-                            letterSpacing: 0.8,
                           ),
                         ),
                       ],
@@ -522,34 +438,25 @@ class ProductDetailScreen extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Container(
-          width: 40,
-          height: 3,
+          width: 40, height: 3,
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [color1, color2],
-            ),
+            gradient: LinearGradient(colors: [color1, color2]),
             borderRadius: BorderRadius.circular(2),
           ),
         ),
-        SizedBox(width: 8),
+        const SizedBox(width: 8),
         Container(
-          width: 8,
-          height: 8,
+          width: 8, height: 8,
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [color1, color3],
-            ),
+            gradient: LinearGradient(colors: [color1, color3]),
             shape: BoxShape.circle,
           ),
         ),
-        SizedBox(width: 8),
+        const SizedBox(width: 8),
         Container(
-          width: 40,
-          height: 3,
+          width: 40, height: 3,
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [color2, color1],
-            ),
+            gradient: LinearGradient(colors: [color2, color1]),
             borderRadius: BorderRadius.circular(2),
           ),
         ),
