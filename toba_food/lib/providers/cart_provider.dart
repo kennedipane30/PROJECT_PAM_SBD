@@ -13,24 +13,21 @@ class CartProvider with ChangeNotifier {
 
   Map<int, CartItem> get items => _items;
 
-  // Hitung jumlah item di keranjang (untuk badge notifikasi)
+  // Jumlah item untuk badge
   int get itemCount => _items.length;
 
-  // Hitung total harga
+  // Hitung total tanpa parsing harga
   double get totalAmount {
-    var total = 0.0;
+    double total = 0.0;
     _items.forEach((key, cartItem) {
-      // Pastikan harga produk di-parse dengan benar ke double
-      double harga = double.tryParse(cartItem.product.harga.toString()) ?? 0;
-      total += harga * cartItem.quantity;
+      total += cartItem.product.harga * cartItem.quantity; // ✅ tanpa parsing!
     });
     return total;
   }
 
-  // Tambah ke keranjang
+  // Tambah item ke keranjang
   void addItem(Product product) {
     if (_items.containsKey(product.id)) {
-      // Jika produk sudah ada, tambah jumlahnya
       _items.update(
         product.id,
         (existing) => CartItem(
@@ -39,7 +36,6 @@ class CartProvider with ChangeNotifier {
         ),
       );
     } else {
-      // Jika belum ada, masukkan baru
       _items.putIfAbsent(
         product.id,
         () => CartItem(product: product, quantity: 1),
@@ -48,28 +44,31 @@ class CartProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  // Kurangi jumlah atau hapus item
+  // Kurangi jumlah 1 item
   void removeSingleItem(int productId) {
     if (!_items.containsKey(productId)) return;
-    
+
     if (_items[productId]!.quantity > 1) {
       _items.update(
-          productId,
-          (existing) => CartItem(
-              product: existing.product, quantity: existing.quantity - 1));
+        productId,
+        (existing) => CartItem(
+          product: existing.product,
+          quantity: existing.quantity - 1,
+        ),
+      );
     } else {
       _items.remove(productId);
     }
     notifyListeners();
   }
 
-  // Hapus item sepenuhnya dari keranjang
+  // Hapus item sepenuhnya
   void removeItem(int productId) {
     _items.remove(productId);
     notifyListeners();
   }
 
-  // Bersihkan keranjang (setelah checkout)
+  // Bersihkan keranjang (checkout)
   void clear() {
     _items.clear();
     notifyListeners();

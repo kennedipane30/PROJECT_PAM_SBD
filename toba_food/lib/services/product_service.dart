@@ -2,19 +2,25 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../config/api_config.dart';
 import '../models/product.dart';
 
 class ProductService {
-  
-  // 1. FUNGSI GET PRODUCTS (TIDAK DIUBAH)
+  // ========================================================
+  // 1. GET ALL PRODUCTS
+  // ========================================================
   Future<List<Product>> getProducts() async {
     try {
       final url = Uri.parse('${ApiConfig.baseUrl}/products');
-      
-      final response = await http.get(url, headers: {
-        "Accept": "application/json",
-      });
+
+      final response = await http.get(
+        url,
+        headers: {"Accept": "application/json"},
+      );
+
+      print("🔍 GET Products Status: ${response.statusCode}");
+      print("🔍 GET Products Body: ${response.body}");
 
       if (response.statusCode == 200) {
         List data = json.decode(response.body);
@@ -23,12 +29,14 @@ class ProductService {
         return [];
       }
     } catch (e) {
-      print("Error getProducts: $e");
+      print("❌ Error getProducts: $e");
       return [];
     }
   }
 
-  // 2. FUNGSI ADD PRODUCT (TIDAK DIUBAH)
+  // ========================================================
+  // 2. ADD PRODUCT
+  // ========================================================
   Future<bool> addProduct({
     required String nama,
     required String harga,
@@ -37,57 +45,48 @@ class ProductService {
     required String kategori,
     File? imageFile,
   }) async {
-    
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token');
-
-    final uri = Uri.parse('${ApiConfig.baseUrl}/products'); 
-    
-    var request = http.MultipartRequest('POST', uri);
-
-    request.headers.addAll({
-      'Authorization': 'Bearer $token',
-      'Accept': 'application/json',
-    });
-
-    // --- FIX: BERSIHKAN FORMAT HARGA ---
-    // Mengubah "25.000" menjadi "25000" agar diterima Laravel (numeric)
-    String hargaBersih = harga.replaceAll('.', '').replaceAll(',', '');
-    
-    request.fields['nama_produk'] = nama;
-    request.fields['harga']       = hargaBersih; // Kirim yang bersih
-    request.fields['stok']        = stok;
-    request.fields['deskripsi']   = deskripsi;
-    request.fields['kategori']    = kategori;
-
-    if (imageFile != null && imageFile.existsSync()) {
-      request.files.add(await http.MultipartFile.fromPath(
-        'gambar', 
-        imageFile.path,
-      ));
-    }
-
     try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token');
+
+      final uri = Uri.parse('${ApiConfig.baseUrl}/products');
+      var request = http.MultipartRequest('POST', uri);
+
+      request.headers.addAll({
+        'Authorization': 'Bearer $token',
+        'Accept': 'application/json',
+      });
+
+      // Hapus format seperti "25.000" → "25000"
+      String hargaBersih = harga.replaceAll('.', '').replaceAll(',', '');
+
+      request.fields['nama_produk'] = nama;
+      request.fields['harga'] = hargaBersih;
+      request.fields['stok'] = stok;
+      request.fields['deskripsi'] = deskripsi;
+      request.fields['kategori'] = kategori;
+
+      if (imageFile != null && imageFile.existsSync()) {
+        request.files
+            .add(await http.MultipartFile.fromPath('gambar', imageFile.path));
+      }
+
       var streamedResponse = await request.send();
       var response = await http.Response.fromStream(streamedResponse);
 
-      // Debugging: Lihat pesan error asli dari Laravel di Terminal
-      print("--- SERVER RESPONSE ---");
-      print("Code: ${response.statusCode}");
-      print("Body: ${response.body}"); 
+      print("🔍 ADD Product Code: ${response.statusCode}");
+      print("🔍 ADD Product Body: ${response.body}");
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        return true;
-      } else {
-        return false;
-      }
+      return response.statusCode == 200 || response.statusCode == 201;
     } catch (e) {
-      print("Error Upload Exception: $e");
+      print("❌ Error addProduct: $e");
       return false;
     }
   }
 
-  // --- 3. FUNGSI DELETE PRODUCT (BARU - UNTUK MENGATASI ERROR HOMESCREEN) ---
+  // ========================================================
+  // 3. DELETE PRODUCT
+  // ========================================================
   Future<bool> deleteProduct(int id) async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -95,62 +94,77 @@ class ProductService {
 
       final url = Uri.parse('${ApiConfig.baseUrl}/products/$id');
 
-      final response = await http.delete(url, headers: {
-        'Authorization': 'Bearer $token',
-        'Accept': 'application/json',
-      });
+      final response = await http.delete(
+        url,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
+      );
+
+      print("🔍 DELETE Product Status: ${response.statusCode}");
+      print("🔍 DELETE Product Body: ${response.body}");
 
       if (response.statusCode == 200) {
         return true;
       } else {
-        print("Gagal hapus produk: ${response.body}");
+        print("❌ Gagal hapus: ${response.body}");
         return false;
       }
     } catch (e) {
-      print("Error deleteProduct: $e");
+      print("❌ Error deleteProduct: $e");
       return false;
     }
   }
 
-  // --- 4. FUNGSI UPDATE PRODUCT (BARU - UNTUK EDIT PRODUCT SCREEN) ---
-  Future<bool> updateProduct(int id, Map<String, String> data, File? imageFile) async {
+  // ========================================================
+  // 4. UPDATE PRODUCT
+  // ========================================================
+  Future<bool> updateProduct(
+    int id,
+    Map<String, String> data,
+    File? imageFile,
+  ) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('token');
 
-      // Trik Laravel: Gunakan POST dengan parameter _method=PUT agar bisa upload file saat update
+      // PUT dengan multipart harus memakai POST + _method=PUT
       final uri = Uri.parse('${ApiConfig.baseUrl}/products/$id?_method=PUT');
 
       var request = http.MultipartRequest('POST', uri);
+
       request.headers.addAll({
         'Authorization': 'Bearer $token',
         'Accept': 'application/json',
       });
 
-      // Bersihkan harga jika ada di dalam data
+      // Jika field harga di-edit → hapus titik/koma
       if (data.containsKey('harga')) {
         data['harga'] = data['harga']!.replaceAll('.', '').replaceAll(',', '');
       }
 
-      // Masukkan semua data teks ke fields
       request.fields.addAll(data);
 
-      // Jika ada gambar baru, masukkan ke files
       if (imageFile != null) {
-        request.files.add(await http.MultipartFile.fromPath('gambar', imageFile.path));
+        request.files
+            .add(await http.MultipartFile.fromPath('gambar', imageFile.path));
       }
 
       var streamedResponse = await request.send();
       var response = await http.Response.fromStream(streamedResponse);
 
+      print("🔍 UPDATE Product Status: ${response.statusCode}");
+      print("🔍 UPDATE Product Body: ${response.body}");
+
       if (response.statusCode == 200) {
         return true;
       } else {
-        print("Gagal update produk: ${response.body}");
+        print("❌ Gagal update: ${response.body}");
         return false;
       }
     } catch (e) {
-      print("Error updateProduct: $e");
+      print("❌ Error updateProduct: $e");
       return false;
     }
   }

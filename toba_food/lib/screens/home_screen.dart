@@ -4,14 +4,14 @@ import 'package:intl/intl.dart';
 
 // --- IMPORT PROVIDER & SERVICES ---
 import '../../providers/auth_provider.dart';
-import '../../providers/cart_provider.dart'; 
+import '../../providers/cart_provider.dart';
 import '../../services/product_service.dart';
 import '../../services/umkm_service.dart';
 import '../../models/product.dart';
 
 // --- IMPORT LAYAR LAIN ---
 import 'pembeli/product_detail_screen.dart';
-import 'pembeli/cart_screen.dart'; 
+import 'pembeli/cart_screen.dart';
 import 'umkm/add_product_screen.dart';
 import 'umkm/EditProductScreen.dart'; // Pastikan nama file sesuai (EditProductScreen.dart atau edit_product_screen.dart)
 import 'umkm/umkm_register_screen.dart';
@@ -33,7 +33,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   bool _isLoading = true;
   String _searchQuery = '';
   late AnimationController _pulseController;
-  
+
   // Ganti IP sesuai konfigurasi Anda
   final String _imageBaseUrl = "http://10.0.2.2:8000/storage/";
 
@@ -82,8 +82,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       builder: (ctx) => AlertDialog(
         backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-        title: Text("Hapus Produk", style: TextStyle(color: darkGreen, fontWeight: FontWeight.bold)),
-        content: Text("Apakah Anda yakin ingin menghapus '${product.namaProduk}'?", style: TextStyle(color: secondaryGreen)),
+        title: Text("Hapus Produk",
+            style: TextStyle(color: darkGreen, fontWeight: FontWeight.bold)),
+        content: Text(
+            "Apakah Anda yakin ingin menghapus '${product.namaProduk}'?",
+            style: TextStyle(color: secondaryGreen)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
@@ -94,7 +97,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               Navigator.pop(ctx);
               await _deleteProduct(product.id);
             },
-            child: const Text("Hapus", style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+            child: const Text("Hapus",
+                style:
+                    TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -105,7 +110,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (c) => Center(child: CircularProgressIndicator(color: accentGreen)),
+      builder: (c) =>
+          Center(child: CircularProgressIndicator(color: accentGreen)),
     );
 
     try {
@@ -116,7 +122,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       if (success) {
         _fetchProducts();
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Gagal menghapus produk")));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text("Gagal menghapus produk")));
       }
     } catch (e) {
       if (!mounted) return;
@@ -138,7 +145,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (c) => Center(child: CircularProgressIndicator(color: accentGreen)),
+      builder: (c) =>
+          Center(child: CircularProgressIndicator(color: accentGreen)),
     );
 
     try {
@@ -155,11 +163,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         );
         _fetchProducts();
       } else if (status == 'not_registered') {
-        _showDialogMsg("Belum Terdaftar", "Silakan daftar sebagai Mitra UMKM.", () {
-          Navigator.push(context, MaterialPageRoute(builder: (_) => UmkmRegisterScreen()));
+        _showDialogMsg("Belum Terdaftar", "Silakan daftar sebagai Mitra UMKM.",
+            () {
+          Navigator.push(
+              context, MaterialPageRoute(builder: (_) => UmkmRegisterScreen()));
         });
       } else if (status == 'pending') {
-        _showDialogMsg("Dalam Peninjauan", "Pendaftaran Anda sedang diverifikasi.", null);
+        _showDialogMsg(
+            "Dalam Peninjauan", "Pendaftaran Anda sedang diverifikasi.", null);
       } else if (status == 'rejected') {
         _showDialogMsg("Ditolak", "Pengajuan ditolak. Hubungi admin.", null);
       }
@@ -175,7 +186,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       builder: (ctx) => AlertDialog(
         title: Text(title),
         content: Text(msg),
-        actions: [TextButton(onPressed: () { Navigator.pop(ctx); if(onConfirm!=null) onConfirm(); }, child: Text("OK"))],
+        actions: [
+          TextButton(
+              onPressed: () {
+                Navigator.pop(ctx);
+                if (onConfirm != null) onConfirm();
+              },
+              child: Text("OK"))
+        ],
       ),
     );
   }
@@ -183,8 +201,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     final auth = Provider.of<AuthProvider>(context);
-    final cart = Provider.of<CartProvider>(context); 
-    final formatCurrency = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
+    final cart = Provider.of<CartProvider>(context);
+    final formatCurrency =
+        NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
 
     return Scaffold(
       body: IndexedStack(
@@ -201,28 +220,37 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   Widget _buildBottomNav() {
     return Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          border: Border(top: BorderSide(color: lightGreen.withOpacity(0.3))),
-          boxShadow: [BoxShadow(color: lightGreen.withOpacity(0.2), blurRadius: 10, offset: const Offset(0, -3))],
-        ),
-        child: BottomNavigationBar(
-          backgroundColor: Colors.white,
-          selectedItemColor: accentGreen,
-          unselectedItemColor: secondaryGreen.withOpacity(0.5),
-          currentIndex: _selectedIndex,
-          onTap: (index) => setState(() => _selectedIndex = index),
-          items: const [
-            BottomNavigationBarItem(icon: Icon(Icons.home_rounded), label: 'Home'),
-            BottomNavigationBarItem(icon: Icon(Icons.person_rounded), label: 'Profil'),
-            BottomNavigationBarItem(icon: Icon(Icons.notifications_rounded), label: 'Notifikasi'),
-          ],
-        ),
-      );
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border(top: BorderSide(color: lightGreen.withOpacity(0.3))),
+        boxShadow: [
+          BoxShadow(
+              color: lightGreen.withOpacity(0.2),
+              blurRadius: 10,
+              offset: const Offset(0, -3))
+        ],
+      ),
+      child: BottomNavigationBar(
+        backgroundColor: Colors.white,
+        selectedItemColor: accentGreen,
+        unselectedItemColor: secondaryGreen.withOpacity(0.5),
+        currentIndex: _selectedIndex,
+        onTap: (index) => setState(() => _selectedIndex = index),
+        items: const [
+          BottomNavigationBarItem(
+              icon: Icon(Icons.home_rounded), label: 'Home'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.person_rounded), label: 'Profil'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.notifications_rounded), label: 'Notifikasi'),
+        ],
+      ),
+    );
   }
 
   // --- KONTEN HOME UTAMA ---
-  Widget _buildHomeContent(AuthProvider auth, CartProvider cart, NumberFormat formatCurrency) {
+  Widget _buildHomeContent(
+      AuthProvider auth, CartProvider cart, NumberFormat formatCurrency) {
     // Cek Role User
     bool isSeller = auth.user?.role == 'seller';
 
@@ -243,7 +271,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 Container(
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    boxShadow: [BoxShadow(color: lightGreen.withOpacity(0.1), blurRadius: 10, offset: const Offset(0, 3))],
+                    boxShadow: [
+                      BoxShadow(
+                          color: lightGreen.withOpacity(0.1),
+                          blurRadius: 10,
+                          offset: const Offset(0, 3))
+                    ],
                   ),
                   child: Padding(
                     padding: const EdgeInsets.all(20),
@@ -259,25 +292,39 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 18, vertical: 10),
                                     decoration: BoxDecoration(
-                                      gradient: LinearGradient(colors: [accentGreen, secondaryGreen]),
+                                      gradient: LinearGradient(colors: [
+                                        accentGreen,
+                                        secondaryGreen
+                                      ]),
                                       borderRadius: BorderRadius.circular(25),
                                     ),
                                     child: const Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        Text("🍃", style: TextStyle(fontSize: 20)),
+                                        Text("🍃",
+                                            style: TextStyle(fontSize: 20)),
                                         SizedBox(width: 8),
                                         Text(
                                           "TOBA FOOD",
-                                          style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900, letterSpacing: 3),
+                                          style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.w900,
+                                              letterSpacing: 3),
                                         ),
                                       ],
                                     ),
                                   ),
                                   const SizedBox(height: 10),
-                                  Text("Halo, ${auth.user?.name ?? 'Sahabat Toba'}! 👋", style: TextStyle(color: secondaryGreen, fontSize: 15, fontWeight: FontWeight.w500)),
+                                  Text(
+                                      "Halo, ${auth.user?.name ?? 'Sahabat Toba'}! 👋",
+                                      style: TextStyle(
+                                          color: secondaryGreen,
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w500)),
                                 ],
                               ),
                             ),
@@ -290,7 +337,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                 onTap: () {
                                   Navigator.push(
                                     context,
-                                    MaterialPageRoute(builder: (context) => const CartScreen()),
+                                    MaterialPageRoute(
+                                        builder: (context) =>
+                                            const CartScreen()),
                                   );
                                 },
                                 child: Stack(
@@ -303,7 +352,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                         shape: BoxShape.circle,
                                         border: Border.all(color: lightGreen),
                                       ),
-                                      child: Icon(Icons.shopping_cart_outlined, color: darkGreen, size: 26),
+                                      child: Icon(Icons.shopping_cart_outlined,
+                                          color: darkGreen, size: 26),
                                     ),
                                     // Badge Jumlah Item
                                     if (cart.itemCount > 0)
@@ -318,7 +368,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                           ),
                                           child: Text(
                                             cart.itemCount.toString(),
-                                            style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                                            style: const TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.bold),
                                           ),
                                         ),
                                       )
@@ -327,7 +380,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                               ),
                           ],
                         ),
-                        
+
                         const SizedBox(height: 20),
                         // Search Field
                         Container(
@@ -337,14 +390,18 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                             border: Border.all(color: lightGreen),
                           ),
                           child: TextField(
-                            onChanged: (value) => setState(() => _searchQuery = value),
+                            onChanged: (value) =>
+                                setState(() => _searchQuery = value),
                             style: TextStyle(color: darkGreen),
                             decoration: InputDecoration(
                               hintText: "Cari makanan lezat...",
-                              hintStyle: TextStyle(color: secondaryGreen.withOpacity(0.5)),
-                              prefixIcon: Icon(Icons.search, color: accentGreen),
+                              hintStyle: TextStyle(
+                                  color: secondaryGreen.withOpacity(0.5)),
+                              prefixIcon:
+                                  Icon(Icons.search, color: accentGreen),
                               border: InputBorder.none,
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                              contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 20, vertical: 16),
                             ),
                           ),
                         ),
@@ -359,13 +416,19 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     onRefresh: _fetchProducts,
                     color: accentGreen,
                     child: _isLoading
-                        ? Center(child: CircularProgressIndicator(color: accentGreen))
+                        ? Center(
+                            child:
+                                CircularProgressIndicator(color: accentGreen))
                         : _filteredProducts.isEmpty
-                            ? Center(child: Text("Produk tidak ditemukan", style: TextStyle(color: secondaryGreen)))
+                            ? Center(
+                                child: Text("Produk tidak ditemukan",
+                                    style: TextStyle(color: secondaryGreen)))
                             : GridView.builder(
-                                padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
+                                padding:
+                                    const EdgeInsets.fromLTRB(20, 20, 20, 100),
                                 itemCount: _filteredProducts.length,
-                                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                gridDelegate:
+                                    const SliverGridDelegateWithFixedCrossAxisCount(
                                   crossAxisCount: 2,
                                   childAspectRatio: 0.7,
                                   crossAxisSpacing: 18,
@@ -375,8 +438,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                   final product = _filteredProducts[i];
                                   return _buildProductCard(
                                     product,
-                                    product.gambar != null ? "$_imageBaseUrl${product.gambar}" : null,
-                                    double.tryParse(product.harga.toString()) ?? 0,
+                                    product.gambar != null
+                                        ? "$_imageBaseUrl${product.gambar}"
+                                        : null,
+                                    product.harga, // ✅ Langsung pakai!
                                     formatCurrency,
                                     auth,
                                     cart,
@@ -391,22 +456,33 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             // FAB Jual (Hanya Seller)
             if (isSeller)
               Positioned(
-                bottom: 35, right: 25,
+                bottom: 35,
+                right: 25,
                 child: InkWell(
                   onTap: _handleJualProduk,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 15),
                     decoration: BoxDecoration(
-                      gradient: LinearGradient(colors: [accentGreen, secondaryGreen, primaryGreen]),
+                      gradient: LinearGradient(
+                          colors: [accentGreen, secondaryGreen, primaryGreen]),
                       borderRadius: BorderRadius.circular(30),
-                      boxShadow: [BoxShadow(color: accentGreen.withOpacity(0.5), blurRadius: 20, offset: const Offset(0, 6))],
+                      boxShadow: [
+                        BoxShadow(
+                            color: accentGreen.withOpacity(0.5),
+                            blurRadius: 20,
+                            offset: const Offset(0, 6))
+                      ],
                     ),
                     child: const Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(Icons.add, color: Colors.white),
                         SizedBox(width: 8),
-                        Text("Jual Produk", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                        Text("Jual Produk",
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold)),
                       ],
                     ),
                   ),
@@ -419,19 +495,28 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   // --- CARD PRODUK ---
-  Widget _buildProductCard(Product product, String? imageUrl, double harga, NumberFormat formatCurrency, AuthProvider auth, CartProvider cart) {
+  Widget _buildProductCard(Product product, String? imageUrl, double harga,
+      NumberFormat formatCurrency, AuthProvider auth, CartProvider cart) {
     bool isSeller = auth.user?.role == 'seller';
-    
+
     return GestureDetector(
       onTap: () {
-        Navigator.push(context, MaterialPageRoute(builder: (context) => ProductDetailScreen(product: product)));
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => ProductDetailScreen(product: product)));
       },
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: lightGreen),
-          boxShadow: [BoxShadow(color: lightGreen.withOpacity(0.2), blurRadius: 10, offset: const Offset(0, 4))],
+          boxShadow: [
+            BoxShadow(
+                color: lightGreen.withOpacity(0.2),
+                blurRadius: 10,
+                offset: const Offset(0, 4))
+          ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -441,51 +526,72 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               child: Stack(
                 children: [
                   ClipRRect(
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                    borderRadius:
+                        const BorderRadius.vertical(top: Radius.circular(20)),
                     child: Container(
                       width: double.infinity,
                       height: double.infinity,
                       color: cream,
                       child: imageUrl != null
-                          ? Image.network(imageUrl, fit: BoxFit.cover, errorBuilder: (c, e, s) => Icon(Icons.broken_image, color: secondaryGreen))
+                          ? Image.network(imageUrl,
+                              fit: BoxFit.cover,
+                              errorBuilder: (c, e, s) => Icon(
+                                  Icons.broken_image,
+                                  color: secondaryGreen))
                           : Icon(Icons.fastfood, color: secondaryGreen),
                     ),
                   ),
-                  
+
                   // Menu Edit/Delete (Khusus Seller)
                   if (isSeller)
                     Positioned(
-                      top: 5, right: 5,
+                      top: 5,
+                      right: 5,
                       child: Container(
-                        height: 35, width: 35,
-                        decoration: BoxDecoration(color: Colors.white.withOpacity(0.9), shape: BoxShape.circle),
+                        height: 35,
+                        width: 35,
+                        decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.9),
+                            shape: BoxShape.circle),
                         child: PopupMenuButton<String>(
                           padding: EdgeInsets.zero,
-                          icon: Icon(Icons.more_vert, color: darkGreen, size: 20),
-                          onSelected: (val) => val == 'edit' ? _editProduct(product) : _confirmDelete(product),
+                          icon:
+                              Icon(Icons.more_vert, color: darkGreen, size: 20),
+                          onSelected: (val) => val == 'edit'
+                              ? _editProduct(product)
+                              : _confirmDelete(product),
                           itemBuilder: (ctx) => [
-                            const PopupMenuItem(value: 'edit', child: Text('Edit')),
-                            const PopupMenuItem(value: 'delete', child: Text('Hapus')),
+                            const PopupMenuItem(
+                                value: 'edit', child: Text('Edit')),
+                            const PopupMenuItem(
+                                value: 'delete', child: Text('Hapus')),
                           ],
                         ),
                       ),
                     ),
-                  
+
                   // Tombol Quick Add to Cart (Khusus Pembeli)
                   if (!isSeller)
                     Positioned(
-                      bottom: 5, right: 5,
+                      bottom: 5,
+                      right: 5,
                       child: GestureDetector(
                         onTap: () {
                           cart.addItem(product);
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text("${product.namaProduk} masuk keranjang!"), duration: Duration(seconds: 1), backgroundColor: primaryGreen),
+                            SnackBar(
+                                content: Text(
+                                    "${product.namaProduk} masuk keranjang!"),
+                                duration: Duration(seconds: 1),
+                                backgroundColor: primaryGreen),
                           );
                         },
                         child: Container(
                           padding: EdgeInsets.all(6),
-                          decoration: BoxDecoration(color: accentGreen, shape: BoxShape.circle),
-                          child: Icon(Icons.add_shopping_cart, color: Colors.white, size: 18),
+                          decoration: BoxDecoration(
+                              color: accentGreen, shape: BoxShape.circle),
+                          child: Icon(Icons.add_shopping_cart,
+                              color: Colors.white, size: 18),
                         ),
                       ),
                     ),
@@ -499,11 +605,24 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(product.namaProduk, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: darkGreen, fontWeight: FontWeight.bold, fontSize: 15)),
+                    Text(product.namaProduk,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                            color: darkGreen,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15)),
                     const SizedBox(height: 4),
-                    Text(product.umkmNama, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: secondaryGreen, fontSize: 12)),
+                    Text(product.umkmNama,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(color: secondaryGreen, fontSize: 12)),
                     const Spacer(),
-                    Text(formatCurrency.format(harga), style: TextStyle(color: accentGreen, fontWeight: FontWeight.bold, fontSize: 16)),
+                    Text(formatCurrency.format(harga),
+                        style: TextStyle(
+                            color: accentGreen,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16)),
                   ],
                 ),
               ),
@@ -516,6 +635,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   List<Product> get _filteredProducts {
     if (_searchQuery.isEmpty) return _products;
-    return _products.where((p) => p.namaProduk.toLowerCase().contains(_searchQuery.toLowerCase()) || p.umkmNama.toLowerCase().contains(_searchQuery.toLowerCase())).toList();
+    return _products
+        .where((p) =>
+            p.namaProduk.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+            p.umkmNama.toLowerCase().contains(_searchQuery.toLowerCase()))
+        .toList();
   }
 }
