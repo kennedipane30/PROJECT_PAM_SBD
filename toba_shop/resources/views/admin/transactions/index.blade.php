@@ -13,7 +13,7 @@
                             <th>ID Order</th>
                             <th>Tanggal</th>
                             <th>Pembeli</th>
-                            <th>Toko (UMKM)</th>
+                            <!-- Kolom Toko (UMKM) Dihapus -->
                             <th>Total</th>
                             <th>Status</th>
                             <th>Metode Bayar</th>
@@ -32,10 +32,7 @@
                                 <small class="text-muted">{{ $order->user->email ?? '-' }}</small>
                             </td>
 
-                            <!-- Menampilkan Nama Toko (Sesuaikan dengan relasi di Controller) -->
-                            <td>
-                                {{ $order->umkmProfile->nama_umkm ?? 'Toko Hapus' }}
-                            </td>
+                            <!-- Kolom Data Toko (UMKM) Dihapus -->
 
                             <td class="fw-bold">Rp {{ number_format($order->total_harga, 0, ',', '.') }}</td>
 
@@ -67,7 +64,7 @@
                                 @endif
                             </td>
 
-                            <!-- LOGIKA BUKTI BAYAR (SESUAI REQUEST) -->
+                            <!-- LOGIKA BUKTI BAYAR -->
                             <td>
                                 @php
                                     $metode = strtolower($order->metode_pembayaran ?? '');
@@ -98,7 +95,8 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="8" class="text-center py-4">
+                            <!-- Colspan diubah dari 8 menjadi 7 karena 1 kolom dihapus -->
+                            <td colspan="7" class="text-center py-4">
                                 <h5>Belum ada transaksi yang Selesai.</h5>
                             </td>
                         </tr>

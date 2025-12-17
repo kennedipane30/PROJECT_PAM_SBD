@@ -14,7 +14,7 @@ class _MyOrderScreenState extends State<MyOrderScreen> {
   final OrderService _orderService = OrderService();
   late Future<List<dynamic>> _myOrders;
 
-  // Green Nature Palette - Modern & Elegant (dari login_screen)
+  // Green Nature Palette
   final Color primaryGreen = Color(0xFF3D5A4A);
   final Color secondaryGreen = Color(0xFF6B8E7C);
   final Color lightGreen = Color(0xFFA8C5B5);
@@ -36,18 +36,15 @@ class _MyOrderScreenState extends State<MyOrderScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final formatCurrency =
-        NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
+    final formatCurrency = NumberFormat.currency(
+        locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
 
     return Scaffold(
       backgroundColor: cream,
       appBar: AppBar(
         title: Text(
           "Pesanan Saya",
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            letterSpacing: 1,
-          ),
+          style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1),
         ),
         backgroundColor: primaryGreen,
         foregroundColor: Colors.white,
@@ -80,10 +77,8 @@ class _MyOrderScreenState extends State<MyOrderScreen> {
                 children: [
                   Icon(Icons.error_outline, color: primaryGreen, size: 60),
                   SizedBox(height: 10),
-                  Text(
-                    "Gagal memuat data",
-                    style: TextStyle(color: darkGreen, fontSize: 16),
-                  ),
+                  Text("Gagal memuat data",
+                      style: TextStyle(color: darkGreen, fontSize: 16)),
                 ],
               ),
             );
@@ -106,29 +101,18 @@ class _MyOrderScreenState extends State<MyOrderScreen> {
                       ),
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(
-                      Icons.shopping_bag_outlined,
-                      color: primaryGreen,
-                      size: 60,
-                    ),
+                    child: Icon(Icons.shopping_bag_outlined,
+                        color: primaryGreen, size: 60),
                   ),
                   SizedBox(height: 16),
-                  Text(
-                    "Belum ada pesanan",
-                    style: TextStyle(
-                      color: secondaryGreen,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+                  Text("Belum ada pesanan",
+                      style: TextStyle(
+                          color: secondaryGreen,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600)),
                   SizedBox(height: 8),
-                  Text(
-                    "Pesanan Anda akan muncul di sini",
-                    style: TextStyle(
-                      color: lightGreen,
-                      fontSize: 13,
-                    ),
-                  ),
+                  Text("Pesanan Anda akan muncul di sini",
+                      style: TextStyle(color: lightGreen, fontSize: 13)),
                 ],
               ),
             );
@@ -144,13 +128,17 @@ class _MyOrderScreenState extends State<MyOrderScreen> {
               itemBuilder: (context, index) {
                 var order = snapshot.data![index];
 
-                // Ambil info produk pertama untuk preview
-                var firstItem = (order['items'] as List).isNotEmpty
-                    ? order['items'][0]
-                    : null;
-                String productName = firstItem != null
-                    ? firstItem['product']['nama_produk']
-                    : 'Item dihapus';
+                // --- BAGIAN YANG DIPERBAIKI (NULL SAFETY) ---
+                var items = order['items'] as List?;
+                var firstItem = (items != null && items.isNotEmpty) ? items[0] : null;
+
+                String productName = 'Item dihapus / Tidak tersedia';
+                
+                // Cek firstItem tidak null DAN key 'product' di dalamnya juga tidak null
+                if (firstItem != null && firstItem['product'] != null) {
+                  productName = firstItem['product']['nama_produk'] ?? 'Nama tidak tersedia';
+                }
+                // ---------------------------------------------
 
                 return GestureDetector(
                   onTap: () async {
@@ -209,11 +197,8 @@ class _MyOrderScreenState extends State<MyOrderScreen> {
                                       ),
                                       borderRadius: BorderRadius.circular(10),
                                     ),
-                                    child: Icon(
-                                      Icons.receipt_long,
-                                      color: Colors.white,
-                                      size: 18,
-                                    ),
+                                    child: Icon(Icons.receipt_long,
+                                        color: Colors.white, size: 18),
                                   ),
                                   SizedBox(width: 10),
                                   Text(
@@ -237,19 +222,8 @@ class _MyOrderScreenState extends State<MyOrderScreen> {
                             child: Row(
                               children: [
                                 Expanded(
-                                  child: Container(
-                                    height: 1,
-                                    decoration: BoxDecoration(
-                                      gradient: LinearGradient(
-                                        colors: [
-                                          lightGreen.withOpacity(0.3),
-                                          lightGreen,
-                                          lightGreen.withOpacity(0.3),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
+                                    child: Container(
+                                        height: 1, color: lightGreen.withOpacity(0.3))),
                                 Padding(
                                   padding: EdgeInsets.symmetric(horizontal: 8),
                                   child: Container(
@@ -257,26 +231,14 @@ class _MyOrderScreenState extends State<MyOrderScreen> {
                                     height: 6,
                                     decoration: BoxDecoration(
                                       gradient: LinearGradient(
-                                        colors: [accentGreen, primaryGreen],
-                                      ),
+                                          colors: [accentGreen, primaryGreen]),
                                       shape: BoxShape.circle,
                                     ),
                                   ),
                                 ),
                                 Expanded(
-                                  child: Container(
-                                    height: 1,
-                                    decoration: BoxDecoration(
-                                      gradient: LinearGradient(
-                                        colors: [
-                                          lightGreen.withOpacity(0.3),
-                                          lightGreen,
-                                          lightGreen.withOpacity(0.3),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
+                                    child: Container(
+                                        height: 1, color: lightGreen.withOpacity(0.3))),
                               ],
                             ),
                           ),
@@ -284,22 +246,16 @@ class _MyOrderScreenState extends State<MyOrderScreen> {
                           // Body Card: Produk & Total
                           Row(
                             children: [
-                              // Icon Produk
                               Container(
                                 padding: EdgeInsets.all(12),
                                 decoration: BoxDecoration(
                                   color: cream,
                                   borderRadius: BorderRadius.circular(14),
                                   border: Border.all(
-                                    color: lightGreen.withOpacity(0.5),
-                                    width: 1.5,
-                                  ),
+                                      color: lightGreen.withOpacity(0.5), width: 1.5),
                                 ),
-                                child: Icon(
-                                  Icons.restaurant_menu,
-                                  color: primaryGreen,
-                                  size: 24,
-                                ),
+                                child: Icon(Icons.restaurant_menu,
+                                    color: primaryGreen, size: 24),
                               ),
                               SizedBox(width: 14),
                               Expanded(
@@ -332,9 +288,7 @@ class _MyOrderScreenState extends State<MyOrderScreen> {
                                       ),
                                       child: Text(
                                         formatCurrency.format(double.tryParse(
-                                                order['total_harga']
-                                                    .toString()) ??
-                                            0),
+                                                order['total_harga'].toString()) ?? 0),
                                         style: TextStyle(
                                           color: primaryGreen,
                                           fontWeight: FontWeight.bold,
@@ -345,23 +299,8 @@ class _MyOrderScreenState extends State<MyOrderScreen> {
                                   ],
                                 ),
                               ),
-                              Container(
-                                padding: EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    colors: [
-                                      accentGreen.withOpacity(0.2),
-                                      secondaryGreen.withOpacity(0.2)
-                                    ],
-                                  ),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Icon(
-                                  Icons.arrow_forward_ios,
-                                  size: 14,
-                                  color: primaryGreen,
-                                ),
-                              ),
+                              Icon(Icons.arrow_forward_ios,
+                                  size: 14, color: primaryGreen),
                             ],
                           ),
 
@@ -369,17 +308,11 @@ class _MyOrderScreenState extends State<MyOrderScreen> {
                           SizedBox(height: 12),
                           Row(
                             children: [
-                              Icon(
-                                Icons.access_time,
-                                size: 14,
-                                color: lightGreen,
-                              ),
+                              Icon(Icons.access_time, size: 14, color: lightGreen),
                               SizedBox(width: 6),
                               Text(
                                 order['created_at'] != null
-                                    ? order['created_at']
-                                        .toString()
-                                        .substring(0, 10)
+                                    ? order['created_at'].toString().substring(0, 10)
                                     : '-',
                                 style: TextStyle(
                                   color: secondaryGreen,
@@ -402,7 +335,6 @@ class _MyOrderScreenState extends State<MyOrderScreen> {
     );
   }
 
-  // Helper untuk warna status dengan tema green nature
   Widget _buildStatusBadge(String status) {
     Color color;
     Color bgColor;
@@ -410,13 +342,13 @@ class _MyOrderScreenState extends State<MyOrderScreen> {
 
     switch (status) {
       case 'pending':
-        color = Color(0xFFD97706); // Warm orange
+        color = Color(0xFFD97706);
         bgColor = Color(0xFFFEF3C7);
         label = 'Menunggu';
         break;
       case 'shipped':
       case 'dikirim':
-        color = Color(0xFF2563EB); // Blue
+        color = Color(0xFF2563EB);
         bgColor = Color(0xFFDBEAFE);
         label = 'Dikirim';
         break;
@@ -440,20 +372,16 @@ class _MyOrderScreenState extends State<MyOrderScreen> {
         border: Border.all(color: color.withOpacity(0.3), width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.1),
-            blurRadius: 4,
-            offset: Offset(0, 2),
-          ),
+              color: color.withOpacity(0.1), blurRadius: 4, offset: Offset(0, 2)),
         ],
       ),
       child: Text(
         label.toUpperCase(),
         style: TextStyle(
-          color: color,
-          fontSize: 10,
-          fontWeight: FontWeight.bold,
-          letterSpacing: 0.8,
-        ),
+            color: color,
+            fontSize: 10,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 0.8),
       ),
     );
   }
