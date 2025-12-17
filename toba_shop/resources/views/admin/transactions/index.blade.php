@@ -13,7 +13,6 @@
                             <th>ID Order</th>
                             <th>Tanggal</th>
                             <th>Pembeli</th>
-                            <!-- Kolom Toko (UMKM) Dihapus -->
                             <th>Total</th>
                             <th>Status</th>
                             <th>Metode Bayar</th>
